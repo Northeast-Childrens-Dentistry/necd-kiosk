@@ -20,7 +20,7 @@ done
 
 printf '\nApplications\n------------\n'
 printf 'Cage:          %s\n' "$(command -v cage >/dev/null && cage --version 2>/dev/null | head -n1 || echo missing)"
-printf 'Chrome:        %s\n' "$(command -v google-chrome-stable >/dev/null && google-chrome-stable --version 2>/dev/null || echo missing)"
+printf 'Chromium:      %s\n' "$(command -v chromium >/dev/null && chromium --version 2>/dev/null || echo missing)"
 printf 'Tailscale:     %s\n' "$(command -v tailscale >/dev/null && tailscale version 2>/dev/null | head -n1 || echo missing)"
 
 printf '\nNetwork\n-------\n'
