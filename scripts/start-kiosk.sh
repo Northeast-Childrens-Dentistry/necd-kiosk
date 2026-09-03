@@ -2,11 +2,11 @@
 set -euo pipefail
 
 CARESTACK_URL="${CARESTACK_URL:-https://patientportal-mw.carestack.com/?dn=necdsa#/patient-connect}"
-PROFILE_DIR="${HOME}/.config/necd-chrome"
+PROFILE_DIR="${HOME}/.config/necd-chromium"
 
 mkdir -p "$PROFILE_DIR"
 
-exec /usr/bin/google-chrome-stable \
+exec /usr/bin/chromium \
   --ozone-platform=wayland \
   --kiosk \
   --no-first-run \
