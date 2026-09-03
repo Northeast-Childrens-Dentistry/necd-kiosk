@@ -81,6 +81,7 @@ log "Installing kiosk and administration packages"
 apt-get install -y \
   cage \
   greetd \
+  chromium \
   ca-certificates \
   curl \
   wget \
@@ -88,17 +89,6 @@ apt-get install -y \
   openssh-server \
   dbus-user-session \
   libpam-systemd
-
-log "Installing Google Chrome"
-if ! command -v google-chrome-stable >/dev/null 2>&1; then
-  chrome_deb="$(mktemp --suffix=.deb)"
-  curl -fL --retry 3 --output "$chrome_deb" \
-    https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-  apt-get install -y "$chrome_deb"
-  rm -f "$chrome_deb"
-else
-  echo "Google Chrome is already installed."
-fi
 
 log "Installing Tailscale"
 if ! command -v tailscale >/dev/null 2>&1; then
@@ -139,10 +129,10 @@ EOF
 chmod 0644 "$CONFIG_DIR/device.conf"
 hostnamectl set-hostname "$HOSTNAME_NEW"
 
-log "Installing managed Chrome policies"
-mkdir -p /etc/opt/chrome/policies/managed
+log "Installing managed Chromium policies"
+mkdir -p /etc/chromium/policies/managed
 install -m 0644 "$INSTALL_DIR/chrome/necd-kiosk.json" \
-  /etc/opt/chrome/policies/managed/necd-kiosk.json
+  /etc/chromium/policies/managed/necd-kiosk.json
 
 log "Configuring automatic kiosk session"
 AGREETY_BIN="$(command -v agreety || true)"
@@ -171,7 +161,7 @@ systemctl set-default graphical.target
 systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target >/dev/null 2>&1 || true
 
 log "Installation checks"
-chrome_version="$(google-chrome-stable --version 2>/dev/null || echo MISSING)"
+chromium_version="$(chromium --version 2>/dev/null || echo MISSING)"
 cage_version="$(cage --version 2>/dev/null | head -n1 || echo MISSING)"
 
 printf '\nNECD kiosk installation complete\n'
@@ -179,7 +169,7 @@ printf '================================\n'
 printf 'Hostname:       %s\n' "$HOSTNAME_NEW"
 printf 'Location:       %s\n' "$LOCATION"
 printf 'Station:        %s\n' "$STATION_PADDED"
-printf 'Chrome:         %s\n' "$chrome_version"
+printf 'Chromium:       %s\n' "$chromium_version"
 printf 'Cage:           %s\n' "$cage_version"
 printf 'SSH:            installed/enabled\n'
 printf 'Tailscale:      installed; authorization may still be required\n'
