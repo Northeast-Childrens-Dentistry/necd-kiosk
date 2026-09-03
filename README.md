@@ -97,25 +97,53 @@ Update the NECD kiosk code from GitHub:
 sudo /opt/necd-kiosk/update.sh
 ```
 
-### Create a troubleshooting bundle
+## Troubleshooting with `necd-support`
 
-If a kiosk has an error that is not immediately obvious, create a single support archive:
+Every kiosk installs a simple support command:
 
 ```bash
-sudo /opt/necd-kiosk/scripts/support-bundle.sh /tmp
+sudo necd-support
 ```
 
-The command prints the exact path of a file such as:
-
-```text
-/tmp/necd-kiosk-support-schertz-kiosk-01-20260903-131900.tar.gz
-```
-
-Copy or upload that `.tar.gz` file to ChatGPT for troubleshooting.
+This creates a single `.tar.gz` troubleshooting bundle in `/tmp` and prints the exact filename.
 
 The bundle includes bounded system/service logs, hardware details, disk and memory information, package versions, network status, NECD kiosk configuration, and basic CareStack/GitHub reachability checks.
 
 It intentionally does **not** collect the Chromium browser profile, cookies, browser history, CareStack credentials, CareStack form contents, screenshots, patient information, or Tailscale authentication keys.
+
+### Remote workflow over Tailscale
+
+From your own computer, SSH into the kiosk:
+
+```bash
+ssh YOUR_USERNAME@schertz-kiosk-01
+```
+
+Then run:
+
+```bash
+sudo necd-support
+```
+
+The command creates the support bundle and prints an `scp` command similar to:
+
+```bash
+scp YOUR_USERNAME@schertz-kiosk-01:/tmp/necd-kiosk-support-schertz-kiosk-01-20260903-131900.tar.gz .
+```
+
+Exit the kiosk:
+
+```bash
+exit
+```
+
+Then run the printed `scp` command on your own computer. The `.tar.gz` support file will be copied into your current local folder. Upload that file to ChatGPT for troubleshooting.
+
+You can also choose a different output folder when running the command locally on the kiosk:
+
+```bash
+sudo necd-support /path/to/folder
+```
 
 ## Prototype status
 
