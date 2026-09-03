@@ -1,0 +1,16 @@
+# Never commit local credentials or secrets
+*.env
+*.key
+*.pem
+credentials*
+secrets*
+.env
+
+# Local provisioning overrides
+device.conf
+local.conf
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*~
