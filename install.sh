@@ -88,7 +88,9 @@ apt-get install -y \
   git \
   openssh-server \
   dbus-user-session \
-  libpam-systemd
+  libpam-systemd \
+  pciutils \
+  usbutils
 
 log "Installing Tailscale"
 if ! command -v tailscale >/dev/null 2>&1; then
@@ -181,4 +183,6 @@ printf '2. Run a health report if desired:\n'
 printf '      sudo %s/scripts/diagnose.sh\n\n' "$INSTALL_DIR"
 printf '3. Reboot to start the CareStack kiosk:\n'
 printf '      sudo reboot\n\n'
+printf 'If you need troubleshooting help later, create a support bundle with:\n'
+printf '      sudo %s/scripts/support-bundle.sh /tmp\n\n' "$INSTALL_DIR"
 printf 'The first CareStack authentication is intentionally manual during the prototype phase.\n'
