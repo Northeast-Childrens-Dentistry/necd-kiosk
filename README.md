@@ -97,6 +97,26 @@ Update the NECD kiosk code from GitHub:
 sudo /opt/necd-kiosk/update.sh
 ```
 
+### Create a troubleshooting bundle
+
+If a kiosk has an error that is not immediately obvious, create a single support archive:
+
+```bash
+sudo /opt/necd-kiosk/scripts/support-bundle.sh /tmp
+```
+
+The command prints the exact path of a file such as:
+
+```text
+/tmp/necd-kiosk-support-schertz-kiosk-01-20260903-131900.tar.gz
+```
+
+Copy or upload that `.tar.gz` file to ChatGPT for troubleshooting.
+
+The bundle includes bounded system/service logs, hardware details, disk and memory information, package versions, network status, NECD kiosk configuration, and basic CareStack/GitHub reachability checks.
+
+It intentionally does **not** collect the Chromium browser profile, cookies, browser history, CareStack credentials, CareStack form contents, screenshots, patient information, or Tailscale authentication keys.
+
 ## Prototype status
 
-This project is under active development. The initial goal is to validate Debian + Cage + Chromium + CareStack across a range of compatible older hardware and refine the installer, remote-management workflow, and recovery behavior.
+This project is under active development. The initial goal is to validate Debian + Cage + Chromium + CareStack across a range of compatible older hardware and refine the installer, remote-management workflow, recovery behavior, and troubleshooting process.
