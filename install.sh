@@ -118,6 +118,7 @@ fi
 chown -R root:root "$INSTALL_DIR"
 find "$INSTALL_DIR/scripts" -type f -name '*.sh' -exec chmod 0755 {} +
 chmod 0755 "$INSTALL_DIR/install.sh" "$INSTALL_DIR/update.sh"
+install -m 0755 "$INSTALL_DIR/scripts/necd-support.sh" /usr/local/bin/necd-support
 
 log "Writing device configuration"
 mkdir -p "$CONFIG_DIR"
@@ -183,6 +184,6 @@ printf '2. Run a health report if desired:\n'
 printf '      sudo %s/scripts/diagnose.sh\n\n' "$INSTALL_DIR"
 printf '3. Reboot to start the CareStack kiosk:\n'
 printf '      sudo reboot\n\n'
-printf 'If you need troubleshooting help later, create a support bundle with:\n'
-printf '      sudo %s/scripts/support-bundle.sh /tmp\n\n' "$INSTALL_DIR"
+printf 'If you need troubleshooting help later, run:\n'
+printf '      sudo necd-support\n\n'
 printf 'The first CareStack authentication is intentionally manual during the prototype phase.\n'
