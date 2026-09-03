@@ -2,7 +2,30 @@
 
 Lightweight Debian-based patient kiosk configuration for Northeast Children's Dentistry.
 
-The goal is to repurpose older office PCs as single-purpose CareStack Patient Connect kiosks.
+The goal is to repurpose compatible older hardware as single-purpose CareStack Patient Connect kiosks.
+
+## System requirements
+
+### Minimum
+
+- 64-bit x86 processor supported by current Debian and Google Chrome
+- 4 GB RAM
+- 20 GB available storage
+- Working display
+- Keyboard and mouse, or touchscreen input
+- Ethernet or Wi-Fi supported by Debian
+- Ability to boot and install Debian Stable
+
+### Recommended
+
+- Intel Core i3-class processor or comparable performance
+- 6 GB RAM or more
+- 64 GB or more storage
+- 1366×768 display or better; 1920×1080 preferred
+- Wired Ethernet where practical
+- SSD preferred for faster startup and updates, but a healthy HDD is acceptable
+
+This project is intended to be hardware-agnostic. Any compatible desktop, all-in-one, laptop, mini PC, or similar x86-64 system may be used if it meets the requirements above and performs adequately with CareStack in Chrome.
 
 ## Target stack
 
@@ -29,7 +52,7 @@ cd necd-kiosk
 sudo ./install.sh
 ```
 
-The installer asks for the office location and station number, creates the kiosk account, configures automatic kiosk startup, installs Chrome/Cage/Tailscale, and configures the machine hostname.
+The installer asks for the office location and station number, creates the kiosk account, configures automatic kiosk startup, installs Chrome/Cage/Tailscale, and configures the kiosk hostname.
 
 After installation, authorize Tailscale once with:
 
@@ -74,4 +97,4 @@ sudo /opt/necd-kiosk/update.sh
 
 ## Prototype status
 
-This project is under active development. The first goal is to validate Debian + Cage + Chrome + CareStack on an HP Omni 120-class computer with an Intel Core i3-2120, 6 GB RAM, and its existing mechanical hard drive.
+This project is under active development. The initial goal is to validate Debian + Cage + Chrome + CareStack across a range of compatible older hardware and refine the installer, remote-management workflow, and recovery behavior.
