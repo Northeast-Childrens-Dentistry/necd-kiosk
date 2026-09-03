@@ -8,7 +8,7 @@ The goal is to repurpose compatible older hardware as single-purpose CareStack P
 
 ### Minimum
 
-- 64-bit x86 processor supported by current Debian and Google Chrome
+- 64-bit x86 processor supported by current Debian and Chromium
 - 4 GB RAM
 - 20 GB available storage
 - Working display
@@ -25,16 +25,18 @@ The goal is to repurpose compatible older hardware as single-purpose CareStack P
 - Wired Ethernet where practical
 - SSD preferred for faster startup and updates, but a healthy HDD is acceptable
 
-This project is intended to be hardware-agnostic. Any compatible desktop, all-in-one, laptop, mini PC, or similar x86-64 system may be used if it meets the requirements above and performs adequately with CareStack in Chrome.
+This project is intended to be hardware-agnostic. Any compatible desktop, all-in-one, laptop, mini PC, or similar x86-64 system may be used if it meets the requirements above and performs adequately with CareStack in Chromium.
 
 ## Target stack
 
 - Debian Stable (minimal install)
 - Cage Wayland kiosk compositor
-- Google Chrome
+- Debian Chromium
 - CareStack Patient Connect
 - Tailscale for remote administration
 - OpenSSH
+
+Chromium is installed directly from Debian's repositories so browser updates are handled through normal Debian package management. Google Chrome is not required.
 
 ## CareStack URL
 
@@ -52,7 +54,7 @@ cd necd-kiosk
 sudo ./install.sh
 ```
 
-The installer asks for the office location and station number, creates the kiosk account, configures automatic kiosk startup, installs Chrome/Cage/Tailscale, and configures the kiosk hostname.
+The installer asks for the office location and station number, creates the kiosk account, configures automatic kiosk startup, installs Chromium/Cage/Tailscale, and configures the kiosk hostname.
 
 After installation, authorize Tailscale once with:
 
@@ -69,7 +71,7 @@ sudo reboot
 ## Security model
 
 - The local `kiosk` account has no sudo access.
-- Browser password saving and autofill are disabled through managed Chrome policies.
+- Browser password saving and autofill are disabled through managed Chromium policies.
 - CareStack credentials are **never stored in this repository**.
 - Tailscale authentication keys are **never stored in this repository**.
 - Initial CareStack login is manual during the prototype phase.
@@ -97,4 +99,4 @@ sudo /opt/necd-kiosk/update.sh
 
 ## Prototype status
 
-This project is under active development. The initial goal is to validate Debian + Cage + Chrome + CareStack across a range of compatible older hardware and refine the installer, remote-management workflow, and recovery behavior.
+This project is under active development. The initial goal is to validate Debian + Cage + Chromium + CareStack across a range of compatible older hardware and refine the installer, remote-management workflow, and recovery behavior.
