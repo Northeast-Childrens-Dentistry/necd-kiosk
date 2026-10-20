@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NECD • Patient Kiosk IT Handoff</title>
+<style>
+:root{--cream:#fff8e9;--ink:#222820;--green:#cadbb5;--pink:#f2c9c4}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:#e8e7e2;font-family:Arial,sans-serif;font-size:11pt;line-height:1.42}
+.page{background:var(--cream);max-width:8.5in;min-height:11in;margin:24px auto;padding:.55in}
+.brand{font-size:11pt;font-weight:bold;letter-spacing:.08em}header{border-bottom:2px solid;padding-bottom:18px;margin-bottom:18px}
+h1{font-family:"OTT Harry Black","Arial Rounded MT Bold",Arial,sans-serif;font-size:36pt;line-height:1.05;letter-spacing:-.04em;margin:15px 0}h2{font-size:15pt;margin:18px 0 8px}p{margin:8px 0}
+.tag{display:inline-block;padding:5px 11px;border:1.5px solid;border-radius:30px;background:var(--green);font-weight:bold}
+.callout{border:1.5px solid;border-radius:18px;padding:13px 16px;background:var(--pink);margin:14px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{border:1.5px solid;border-radius:18px;padding:13px 16px}.card h2{margin-top:0}
+ol,ul{padding-left:21px;margin:7px 0}li{margin:5px 0}pre{background:#fff;border:1px solid;border-radius:12px;padding:12px;font-size:9pt;white-space:pre-wrap;overflow-wrap:anywhere}code{font-size:9pt}
+small,footer{font-size:8pt}footer{border-top:1px solid;margin-top:19px;padding-top:9px;display:flex;justify-content:space-between;gap:15px}
+table{border-collapse:collapse;width:100%;font-size:10pt}td,th{text-align:left;padding:7px 3px;border-bottom:1px solid #bbb}a{color:inherit}
+.checks{list-style:none;padding:0}.checks li::before{content:"☐ ";font-size:14pt}
+@page{size:Letter;margin:0}@media print{body{background:white}.page{margin:0;max-width:none;width:8.5in;height:11in;min-height:0;break-after:page;print-color-adjust:exact;-webkit-print-color-adjust:exact}.page:last-child{break-after:auto}.card,pre,.callout{break-inside:avoid}}
+</style></head><body>
+<section class="page"><header><div class="brand">NORTHEAST CHILDREN’S DENTISTRY</div><h1>A friendly start.<br>A simple check-in.</h1><span class="tag">IT HANDOFF · DEBIAN PATIENT KIOSK</span></header>
+<p>Turn an existing all-in-one into a dedicated CareStack check-in and forms station, with Tailscale access for IT.</p>
+<div class="callout"><b>Pilot first.</b> Code prepared for review; physical-device and CareStack validation remain required. Automatic boot opens Patient Connect. Staff still sign in, select <b>Kiosk Mode</b> and choose the office.</div>
+<div class="grid"><div class="card"><h2>01 / Prepare</h2><ul><li>Back up the old computer before installing Debian.</li><li>Debian 13 / trixie, 64-bit x86.</li><li>SSH server + standard utilities; no desktop.</li><li>4 GB RAM minimum; SSD preferred, healthy HDD acceptable.</li><li>Ethernet, keyboard and mouse for pilot. Touch-only typing is not implemented.</li></ul></div><div class="card"><h2>02 / Identify</h2><p>Use a separate named IT administrator with sudo access.</p><p>Choose office and station 01–99:</p><p>Village Drive · Southcross · Schertz · Downtown · Dominion Crossing · Northern Oaks</p><p><b>Example:</b><br><code>schertz-kiosk-01</code></p></div></div>
+<h2>03 / Install from the private repository</h2>
+<p>Authorize the IT administrator’s GitHub SSH key first. Review the pilot revision before running it.</p>
+<pre>sudo apt update
+sudo apt install -y git sudo
+git clone git@github.com:kevcops/necd-kiosk.git
+cd necd-kiosk
+git switch codex/it-handoff-2026-10
+sudo bash install.sh
+sudo tailscale up
+sudo reboot</pre>
+<p><b>After reboot:</b> authenticate CareStack → Kiosk Mode → correct office → confirm the parent welcome screen.</p>
+<footer><span>NECD · IT deployment guide · 20 October 2026</span><span>01 / SET UP</span></footer></section>
+<section class="page"><header><div class="brand">NORTHEAST CHILDREN’S DENTISTRY</div><h1>Keep it ready.</h1><span class="tag">SUPPORT + PILOT SIGN-OFF</span></header>
+<div class="grid"><div class="card"><h2>At opening</h2><p>Confirm the network, correct office and patient welcome screen. Sign in again after restart or CareStack session expiry.</p><p>Verify the previous patient’s information is cleared before the next family begins.</p></div><div class="card"><h2>For IT</h2><p>Restrict Tailscale access to approved IT. Test SSH keys and apply your SSH/firewall policy.</p><p>No remote desktop is included. Browser restarts clear login state and unfinished forms.</p></div></div>
+<h2>Remote commands</h2><pre>ssh IT_USERNAME@schertz-kiosk-01
+sudo /opt/necd-kiosk/scripts/reset-kiosk.sh
+sudo necd-support</pre><p>Coordinate any restart with reception. The support command prints the archive and copy instructions. Review the report before sharing.</p>
+<h2>Before the first family uses it</h2><ul class="checks"><li>Three cold boots reach the portal automatically.</li><li>Touch, typing, scrolling and signatures work on this model.</li><li>Test check-in and signed forms arrive correctly in CareStack.</li><li>Completed and abandoned sessions, Back and refresh protect patient separation.</li><li>Login and required forms work through the navigation allowlist.</li><li>Network/power recovery and Tailscale SSH have been tested.</li><li>Disk/swap protection, physical access and older local data reviewed.</li><li>Approved update and rollback tested; one clinic day observed.</li></ul>
+<div class="callout"><b>Maintenance:</b> Debian security updates are enabled; reboots are manual. Apply reviewed Git revisions during downtime. Restart Chromium to load browser updates, then have staff reauthenticate. Full instructions and limitations are in the README.</div>
+<table><tr><th>Asset / office / station</th><td>________________________________</td></tr><tr><th>IT owner / approved commit</th><td>________________________________</td></tr><tr><th>Reception + IT sign-off / date</th><td>________________________________</td></tr></table>
+<footer><span>Source: github.com/kevcops/necd-kiosk<br>Provisional NECD-style colors; exact brand assets pending.<br>Download this HTML, open locally, print Letter with background graphics.</span><span>02 / HAND OVER</span></footer></section>
+</body></html>
