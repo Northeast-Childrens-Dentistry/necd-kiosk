@@ -1,0 +1,36 @@
+name: Validate kiosk source
+on:
+  push:
+    branches: [main, "codex/**"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shell syntax
+        run: |
+          bash -n install.sh update.sh
+          for script in scripts/*.sh; do bash -n "$script"; done
+      - name: Check Chromium policy JSON
+        run: python3 -m json.tool chrome/necd-kiosk.json > /dev/null
+      - name: Verify source invariants
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          root = pathlib.Path(".")
+          installer = (root / "install.sh").read_text()
+          launcher = (root / "scripts/start-kiosk.sh").read_text()
+          updater = (root / "update.sh").read_text()
+          policies = json.loads((root / "chrome/necd-kiosk.json").read_text())
+          assert "northern-oaks" in installer
+          assert "source /etc/necd-kiosk/device.conf" in launcher
+          assert "XDG_RUNTIME_DIR" in launcher
+          assert "--no-sandbox" not in launcher
+          assert "git pull" not in updater
+          assert policies["PasswordManagerEnabled"] is False
+          assert policies["URLBlocklist"] == ["*"]
+          assert policies["URLAllowlist"] == ["https://carestack.com"]
+          PY
