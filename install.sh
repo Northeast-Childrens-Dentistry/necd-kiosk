@@ -13,17 +13,25 @@ fail() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 [[ -r /etc/os-release ]] || fail "Cannot identify this operating system."
 # shellcheck disable=SC1091
 source /etc/os-release
-[[ "${ID:-}" == "debian" ]] || fail "This prototype installer currently supports Debian only."
+[[ "${ID:-}" == "debian" && "${VERSION_CODENAME:-}" == "trixie" ]] || fail "Use Debian 13 (trixie) for this pilot."
 [[ "$(dpkg --print-architecture)" == "amd64" ]] || fail "This prototype currently expects 64-bit x86 Debian (amd64)."
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+if [[ -f "$CONFIG_DIR/device.conf" ]]; then
+  # shellcheck disable=SC1091
+  source "$CONFIG_DIR/device.conf"
+  NECD_LOCATION="${NECD_LOCATION:-$LOCATION}"
+  NECD_STATION="${NECD_STATION:-$STATION}"
+fi
+CARESTACK_URL="${NECD_CARESTACK_URL:-$CARESTACK_URL}"
+[[ "$CARESTACK_URL" == https://* && "$CARESTACK_URL" != *$'\n'* ]] || fail "Use a single HTTPS portal URL."
 printf '\nNECD Parent Kiosk Installer\n'
 printf '===========================\n'
 printf 'This will convert this Debian computer into a single-purpose CareStack parent kiosk.\n\n'
 
-LOCATIONS=(village southcross schertz downtown dominion)
-DISPLAY_NAMES=(Village Southcross Schertz Downtown Dominion)
+LOCATIONS=(village southcross schertz downtown dominion northern-oaks)
+DISPLAY_NAMES=("Village Drive" Southcross Schertz Downtown "Dominion Crossing" "Northern Oaks")
 
 if [[ -n "${NECD_LOCATION:-}" ]]; then
   LOCATION="${NECD_LOCATION,,}"
@@ -34,7 +42,7 @@ else
   done
   while true; do
     read -r -p "Location [1-${#LOCATIONS[@]}]: " choice
-    if [[ "$choice" =~ ^[1-5]$ ]]; then
+    if [[ "$choice" =~ ^[1-6]$ ]]; then
       LOCATION="${LOCATIONS[$((choice-1))]}"
       break
     fi
@@ -54,7 +62,8 @@ else
   read -r -p "Station number [1]: " STATION
   STATION="${STATION:-1}"
 fi
-[[ "$STATION" =~ ^[0-9]+$ ]] || fail "Station number must be numeric."
+[[ "$STATION" =~ ^[0-9]{1,2}$ ]] || fail "Station number must be numeric."
+STATION=$((10#$STATION))
 (( STATION >= 1 && STATION <= 99 )) || fail "Station number must be between 1 and 99."
 STATION_PADDED="$(printf '%02d' "$STATION")"
 HOSTNAME_NEW="${LOCATION}-kiosk-${STATION_PADDED}"
@@ -89,21 +98,27 @@ apt-get install -y \
   openssh-server \
   dbus-user-session \
   libpam-systemd \
+  dbus-x11 \
+  unattended-upgrades \
   pciutils \
   usbutils
 
 log "Installing Tailscale"
-if ! command -v tailscale >/dev/null 2>&1; then
-  curl -fsSL https://tailscale.com/install.sh | sh
-else
-  echo "Tailscale is already installed."
-fi
+install -d -m 0755 /usr/share/keyrings
+curl --proto '=https' -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg -o /usr/share/keyrings/tailscale-archive-keyring.gpg
+curl --proto '=https' -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list -o /etc/apt/sources.list.d/tailscale.list
+apt-get update
+apt-get install -y tailscale
 
 log "Creating unprivileged kiosk account"
 if ! id "$KIOSK_USER" >/dev/null 2>&1; then
   useradd --create-home --shell /bin/bash "$KIOSK_USER"
 fi
-passwd -l "$KIOSK_USER" >/dev/null 2>&1 || true
+if id -nG "$KIOSK_USER" | tr ' ' '\n' | grep -Eq '^(sudo|adm|docker|lxd)$'; then
+  fail "Existing kiosk account has privileged groups."
+fi
+passwd -l "$KIOSK_USER" >/dev/null
+chmod 0700 "/home/$KIOSK_USER"
 for group in video render input; do
   if getent group "$group" >/dev/null 2>&1; then
     usermod -aG "$group" "$KIOSK_USER"
@@ -113,7 +128,7 @@ done
 log "Installing NECD kiosk files"
 mkdir -p "$INSTALL_DIR"
 if [[ "$SCRIPT_DIR" != "$INSTALL_DIR" ]]; then
-  cp -a "$SCRIPT_DIR"/. "$INSTALL_DIR"/
+  tar -C "$SCRIPT_DIR" --exclude=.git -cf - . | tar -C "$INSTALL_DIR" -xf -
 fi
 chown -R root:root "$INSTALL_DIR"
 find "$INSTALL_DIR/scripts" -type f -name '*.sh' -exec chmod 0755 {} +
@@ -122,13 +137,14 @@ install -m 0755 "$INSTALL_DIR/scripts/necd-support.sh" /usr/local/bin/necd-suppo
 
 log "Writing device configuration"
 mkdir -p "$CONFIG_DIR"
-cat > "$CONFIG_DIR/device.conf" <<EOF
-DEVICE_TYPE=parent-kiosk
-LOCATION=$LOCATION
-STATION=$STATION_PADDED
-HOSTNAME=$HOSTNAME_NEW
-CARESTACK_URL=$CARESTACK_URL
-EOF
+{
+  printf 'DEVICE_TYPE=%q\n' parent-kiosk
+  printf 'LOCATION=%q\n' "$LOCATION"
+  printf 'STATION=%q\n' "$STATION_PADDED"
+  printf 'HOSTNAME=%q\n' "$HOSTNAME_NEW"
+  printf 'CARESTACK_URL=%q\n' "$CARESTACK_URL"
+} > "$CONFIG_DIR/device.conf"
+chown root:root "$CONFIG_DIR/device.conf"
 chmod 0644 "$CONFIG_DIR/device.conf"
 hostnamectl set-hostname "$HOSTNAME_NEW"
 
@@ -156,8 +172,20 @@ chmod 0644 /etc/greetd/config.toml
 
 log "Configuring services"
 systemctl enable ssh.service
-systemctl enable tailscaled.service
+systemctl enable --now tailscaled.service
+systemctl disable getty@tty1.service
 systemctl enable greetd.service
+cat > /etc/apt/apt.conf.d/52necd-kiosk <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+Unattended-Upgrade::Automatic-Reboot "false";
+EOF
+install -d -m 0755 /etc/systemd/journald.conf.d
+cat > /etc/systemd/journald.conf.d/necd-kiosk.conf <<'EOF'
+[Journal]
+Storage=volatile
+RuntimeMaxUse=50M
+EOF
 systemctl set-default graphical.target
 
 # A kiosk should not enter system sleep/hibernate during office hours.
