@@ -8,5 +8,20 @@
   "PrintingEnabled": false,
   "DeveloperToolsAvailability": 2,
   "DownloadRestrictions": 3,
-  "MetricsReportingEnabled": false
+  "MetricsReportingEnabled": false,
+  "BrowserGuestModeEnabled": false,
+  "BrowserAddPersonEnabled": false,
+  "ExtensionInstallBlocklist": [
+    "*"
+  ],
+  "SavingBrowserHistoryDisabled": true,
+  "DefaultNotificationsSetting": 2,
+  "DefaultGeolocationSetting": 2,
+  "URLBlocklist": [
+    "*"
+  ],
+  "URLAllowlist": [
+    "https://carestack.com"
+  ],
+  "RestoreOnStartup": 5
 }
